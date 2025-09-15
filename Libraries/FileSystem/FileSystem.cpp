@@ -1418,9 +1418,11 @@ SC::Result SC::FileSystem::Operations::removeDirectoryRecursive(StringSpan path)
 
 SC::StringSpan SC::FileSystem::Operations::getExecutablePath(StringPath& executablePath)
 {
-    const int pathLength = ::readlink("/proc/self/exe", executablePath.writableSpan().data(), StringPath::MaxPath);
+    char*     buffer     = executablePath.writableSpan().data();
+    const int pathLength = ::readlink("/proc/self/exe", buffer, StringPath::MaxPath - 1);
     if (pathLength > 0)
     {
+        ::memset(buffer + pathLength, 0, StringPath::MaxPath - pathLength);
         (void)executablePath.resize(static_cast<size_t>(pathLength));
         return executablePath.view();
     }
